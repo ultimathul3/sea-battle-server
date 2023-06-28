@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package game;
+
+option go_package = "github.com/ultimathul3/sea-battle-server/proto;gamepb";
+
+import "google/api/annotations.proto";
+
+service GameService {
+    rpc CreateGame (CreateGameRequest) returns (CreateGameResponse) {
+        option (google.api.http) = {
+            post: "/create"
+            body: "*"
+        };
+    };
+}
+
+message CreateGameRequest {
+    string HostNickname = 1;
+}
+
+message CreateGameResponse {
+    string UUID = 1;
+}

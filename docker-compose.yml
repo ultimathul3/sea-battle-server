@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7.0.11-alpine
+    container_name: redis
+    ports:
+      - ${REDIS_PORT}:6379
+    command: redis-server
+    restart: always
+
+  app:
+    container_name: sea_server
+    build: .
+    ports:
+      - ${HTTP_PORT}:8080
+    networks:
+      - sea-network
+    restart: always
+
+networks:
+  sea-network:
+    name: sea-network
+    driver: bridge
