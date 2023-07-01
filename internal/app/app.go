@@ -8,28 +8,36 @@ import (
 
 	"github.com/ultimathul3/sea-battle-server/internal/config"
 	"github.com/ultimathul3/sea-battle-server/internal/service"
+	"github.com/ultimathul3/sea-battle-server/internal/storage"
+	"github.com/ultimathul3/sea-battle-server/pkg/redis"
 )
 
-func Run(config *config.Config) error {
-	err := make(chan error)
-
-	service := service.New()
+func Run(cfg *config.Config) error {
+	errc := make(chan error)
 	ctx := context.Background()
 
+	redisClient, err := redis.NewClient(ctx, cfg)
+	if err != nil {
+		return err
+	}
+
+	storage := storage.NewRedis(redisClient)
+	service := service.New(storage)
+
 	go func() {
-		err <- runGrpcServer(config)
+		errc <- runGrpcServer(cfg)
 	}()
 
 	go func() {
-		err <- runRestServer(ctx, service, config)
+		errc <- runRestServer(ctx, service, cfg)
 	}()
 
 	go func() {
 		quit := make(chan os.Signal, 1)
 		signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 		<-quit
-		err <- nil
+		errc <- nil
 	}()
 
-	return <-err
+	return <-errc
 }

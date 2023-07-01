@@ -55,6 +55,9 @@
       "properties": {
         "HostNickname": {
           "type": "string"
+        },
+        "Field": {
+          "type": "string"
         }
       }
     },

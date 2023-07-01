@@ -1,0 +1,10 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7.0.11-alpine
+    container_name: redis
+    ports:
+      - ${REDIS_PORT}:6379
+    command: redis-server
+    restart: always
