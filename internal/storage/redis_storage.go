@@ -97,3 +97,26 @@ func (s *Redis) JoinGame(ctx context.Context, input domain.JoinGameDTO) (string,
 
 	return gameUUID, nil
 }
+
+func (s *Redis) StartGame(ctx context.Context, input domain.StartGameDTO) error {
+	s.rw.Lock()
+	defer s.rw.Unlock()
+
+	gameUUID, err := s.client.Get(ctx, getGameKey(input.HostNickname, uuidKey)).Result()
+	if err != nil {
+		return ErrGameDoesNotExist
+	}
+
+	if gameUUID != input.UUID {
+		return ErrGameDoesNotExist
+	}
+
+	if err := s.client.Set(ctx, getGameKey(input.HostNickname, opponentFieldKey), input.OpponentField, redis.KeepTTL).Err(); err != nil {
+		return err
+	}
+	if err := s.client.Set(ctx, getGameKey(input.HostNickname, statusKey), GameStarted, keysTTL).Err(); err != nil {
+		return err
+	}
+
+	return nil
+}

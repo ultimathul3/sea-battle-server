@@ -19,6 +19,7 @@ const (
 const (
 	GameCreated int = iota
 	GameWaitingForOpponent
+	GameStarted
 )
 
 var (

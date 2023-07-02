@@ -22,6 +22,7 @@ const (
 	GameService_CreateGame_FullMethodName = "/game.GameService/CreateGame"
 	GameService_GetGames_FullMethodName   = "/game.GameService/GetGames"
 	GameService_JoinGame_FullMethodName   = "/game.GameService/JoinGame"
+	GameService_StartGame_FullMethodName  = "/game.GameService/StartGame"
 )
 
 // GameServiceClient is the client API for GameService service.
@@ -31,6 +32,7 @@ type GameServiceClient interface {
 	CreateGame(ctx context.Context, in *CreateGameRequest, opts ...grpc.CallOption) (*CreateGameResponse, error)
 	GetGames(ctx context.Context, in *GetGamesRequest, opts ...grpc.CallOption) (*GetGamesResponse, error)
 	JoinGame(ctx context.Context, in *JoinGameRequest, opts ...grpc.CallOption) (*JoinGameResponse, error)
+	StartGame(ctx context.Context, in *StartGameRequest, opts ...grpc.CallOption) (*StartGameResponse, error)
 }
 
 type gameServiceClient struct {
@@ -68,6 +70,15 @@ func (c *gameServiceClient) JoinGame(ctx context.Context, in *JoinGameRequest, o
 	return out, nil
 }
 
+func (c *gameServiceClient) StartGame(ctx context.Context, in *StartGameRequest, opts ...grpc.CallOption) (*StartGameResponse, error) {
+	out := new(StartGameResponse)
+	err := c.cc.Invoke(ctx, GameService_StartGame_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GameServiceServer is the server API for GameService service.
 // All implementations must embed UnimplementedGameServiceServer
 // for forward compatibility
@@ -75,6 +86,7 @@ type GameServiceServer interface {
 	CreateGame(context.Context, *CreateGameRequest) (*CreateGameResponse, error)
 	GetGames(context.Context, *GetGamesRequest) (*GetGamesResponse, error)
 	JoinGame(context.Context, *JoinGameRequest) (*JoinGameResponse, error)
+	StartGame(context.Context, *StartGameRequest) (*StartGameResponse, error)
 	mustEmbedUnimplementedGameServiceServer()
 }
 
@@ -90,6 +102,9 @@ func (UnimplementedGameServiceServer) GetGames(context.Context, *GetGamesRequest
 }
 func (UnimplementedGameServiceServer) JoinGame(context.Context, *JoinGameRequest) (*JoinGameResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JoinGame not implemented")
+}
+func (UnimplementedGameServiceServer) StartGame(context.Context, *StartGameRequest) (*StartGameResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StartGame not implemented")
 }
 func (UnimplementedGameServiceServer) mustEmbedUnimplementedGameServiceServer() {}
 
@@ -158,6 +173,24 @@ func _GameService_JoinGame_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GameService_StartGame_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartGameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GameServiceServer).StartGame(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GameService_StartGame_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GameServiceServer).StartGame(ctx, req.(*StartGameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GameService_ServiceDesc is the grpc.ServiceDesc for GameService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -176,6 +209,10 @@ var GameService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "JoinGame",
 			Handler:    _GameService_JoinGame_Handler,
+		},
+		{
+			MethodName: "StartGame",
+			Handler:    _GameService_StartGame_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

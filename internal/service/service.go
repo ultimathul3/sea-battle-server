@@ -12,6 +12,7 @@ type Storage interface {
 	CreateGame(ctx context.Context, input domain.CreateGameDTO) error
 	GetGames(ctx context.Context) ([]string, error)
 	JoinGame(ctx context.Context, input domain.JoinGameDTO) (string, error)
+	StartGame(ctx context.Context, input domain.StartGameDTO) error
 }
 
 type Service struct {
@@ -64,4 +65,16 @@ func (s *Service) JoinGame(ctx context.Context, req *proto.JoinGameRequest) (*pr
 	return &proto.JoinGameResponse{
 		UUID: uuid,
 	}, nil
+}
+
+func (s *Service) StartGame(ctx context.Context, req *proto.StartGameRequest) (*proto.StartGameResponse, error) {
+	if err := s.storage.StartGame(ctx, domain.StartGameDTO{
+		HostNickname:  req.HostNickname,
+		OpponentField: req.OpponentField,
+		UUID:          req.UUID,
+	}); err != nil {
+		return nil, err
+	}
+
+	return &proto.StartGameResponse{}, nil
 }

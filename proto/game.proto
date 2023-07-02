@@ -24,6 +24,12 @@ service GameService {
             body: "*"
         };
     };
+    rpc StartGame (StartGameRequest) returns (StartGameResponse) {
+        option (google.api.http) = {
+            post: "/games/start"
+            body: "*"
+        };
+    };
 }
 
 message CreateGameRequest {
@@ -49,3 +55,11 @@ message JoinGameRequest {
 message JoinGameResponse {
     string UUID = 1;
 }
+
+message StartGameRequest {
+    string HostNickname = 1;
+    string OpponentField = 2;
+    string UUID = 3;
+}
+
+message StartGameResponse {}
