@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"strconv"
 	"sync"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 )
 
 const (
-	keysTTL = 10 * time.Minute
+	keysTTL = 20 * time.Minute
 )
 
 type Redis struct {
@@ -24,19 +25,47 @@ func NewRedis(client *redis.Client) *Redis {
 	}
 }
 
-func (s *Redis) CreateGame(ctx context.Context, game domain.Game) error {
+func (s *Redis) CreateGame(ctx context.Context, input domain.CreateGameDTO) error {
 	s.rw.Lock()
 	defer s.rw.Unlock()
 
-	if err := s.client.SAdd(ctx, gamesSetKey, game.HostNickname).Err(); err != nil {
+	if err := s.client.SAdd(ctx, gamesSetKey, input.HostNickname).Err(); err != nil {
 		return err
 	}
-	if err := s.client.Set(ctx, getGameKey(game.HostNickname, fieldKey), game.Field, keysTTL).Err(); err != nil {
+	if err := s.client.Set(ctx, getGameKey(input.HostNickname, hostFieldKey), input.HostField, keysTTL).Err(); err != nil {
 		return err
 	}
-	if err := s.client.Set(ctx, getGameKey(game.HostNickname, uuidKey), game.UUID, keysTTL).Err(); err != nil {
+	if err := s.client.Set(ctx, getGameKey(input.HostNickname, uuidKey), input.UUID, keysTTL).Err(); err != nil {
+		return err
+	}
+	if err := s.client.Set(ctx, getGameKey(input.HostNickname, statusKey), GameCreated, keysTTL).Err(); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (s *Redis) GetGames(ctx context.Context) ([]string, error) {
+	s.rw.RLock()
+	defer s.rw.RUnlock()
+
+	var games []string
+
+	members, err := s.client.SMembers(ctx, gamesSetKey).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, member := range members {
+		statusValue, err := s.client.Get(ctx, getGameKey(member, statusKey)).Result()
+		status, _ := strconv.Atoi(statusValue)
+
+		if err != nil || status != GameCreated {
+			s.client.SRem(ctx, gamesSetKey, member)
+		} else {
+			games = append(games, member)
+		}
+	}
+
+	return games, nil
 }

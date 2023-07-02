@@ -9,17 +9,28 @@ import "google/api/annotations.proto";
 service GameService {
     rpc CreateGame (CreateGameRequest) returns (CreateGameResponse) {
         option (google.api.http) = {
-            post: "/create"
+            post: "/games"
             body: "*"
+        };
+    };
+    rpc GetGames (GetGamesRequest) returns (GetGamesResponse) {
+        option (google.api.http) = {
+            get: "/games"
         };
     };
 }
 
 message CreateGameRequest {
     string HostNickname = 1;
-    string Field = 2;
+    string HostField = 2;
 }
 
 message CreateGameResponse {
     string UUID = 1;
+}
+
+message GetGamesRequest {}
+
+message GetGamesResponse {
+    repeated string Games = 1;
 }

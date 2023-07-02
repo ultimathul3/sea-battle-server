@@ -16,7 +16,27 @@
     "application/json"
   ],
   "paths": {
-    "/create": {
+    "/games": {
+      "get": {
+        "operationId": "GameService_GetGames",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gameGetGamesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "GameService"
+        ]
+      },
       "post": {
         "operationId": "GameService_CreateGame",
         "responses": {
@@ -56,7 +76,7 @@
         "HostNickname": {
           "type": "string"
         },
-        "Field": {
+        "HostField": {
           "type": "string"
         }
       }
@@ -66,6 +86,17 @@
       "properties": {
         "UUID": {
           "type": "string"
+        }
+      }
+    },
+    "gameGetGamesResponse": {
+      "type": "object",
+      "properties": {
+        "Games": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
