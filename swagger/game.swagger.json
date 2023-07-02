@@ -67,6 +67,38 @@
           "GameService"
         ]
       }
+    },
+    "/games/join": {
+      "post": {
+        "operationId": "GameService_JoinGame",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gameJoinGameResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gameJoinGameRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GameService"
+        ]
+      }
     }
   },
   "definitions": {
@@ -97,6 +129,25 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "gameJoinGameRequest": {
+      "type": "object",
+      "properties": {
+        "HostNickname": {
+          "type": "string"
+        },
+        "OpponentNickname": {
+          "type": "string"
+        }
+      }
+    },
+    "gameJoinGameResponse": {
+      "type": "object",
+      "properties": {
+        "UUID": {
+          "type": "string"
         }
       }
     },

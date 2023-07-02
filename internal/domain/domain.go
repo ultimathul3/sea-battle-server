@@ -14,3 +14,8 @@ type CreateGameDTO struct {
 	HostField    string
 	UUID         string
 }
+
+type JoinGameDTO struct {
+	HostNickname     string
+	OpponentNickname string
+}

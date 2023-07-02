@@ -46,8 +46,8 @@ func (s *Redis) CreateGame(ctx context.Context, input domain.CreateGameDTO) erro
 }
 
 func (s *Redis) GetGames(ctx context.Context) ([]string, error) {
-	s.rw.RLock()
-	defer s.rw.RUnlock()
+	s.rw.Lock()
+	defer s.rw.Unlock()
 
 	var games []string
 
@@ -68,4 +68,32 @@ func (s *Redis) GetGames(ctx context.Context) ([]string, error) {
 	}
 
 	return games, nil
+}
+
+func (s *Redis) JoinGame(ctx context.Context, input domain.JoinGameDTO) (string, error) {
+	s.rw.Lock()
+	defer s.rw.Unlock()
+
+	statusValue, err := s.client.Get(ctx, getGameKey(input.HostNickname, statusKey)).Result()
+	status, _ := strconv.Atoi(statusValue)
+	if err != nil {
+		return "", ErrGameDoesNotExist
+	}
+
+	if status != GameCreated {
+		return "", ErrGameDoesNotExist
+	}
+
+	if err := s.client.Set(ctx, getGameKey(input.HostNickname, statusKey), GameWaitingForOpponent, redis.KeepTTL).Err(); err != nil {
+		return "", err
+	}
+	if err := s.client.Set(ctx, getGameKey(input.HostNickname, opponentNicknameKey), input.OpponentNickname, redis.KeepTTL).Err(); err != nil {
+		return "", err
+	}
+	gameUUID, err := s.client.Get(ctx, getGameKey(input.HostNickname, uuidKey)).Result()
+	if err != nil {
+		return "", err
+	}
+
+	return gameUUID, nil
 }

@@ -11,6 +11,7 @@ import (
 type Storage interface {
 	CreateGame(ctx context.Context, input domain.CreateGameDTO) error
 	GetGames(ctx context.Context) ([]string, error)
+	JoinGame(ctx context.Context, input domain.JoinGameDTO) (string, error)
 }
 
 type Service struct {
@@ -42,8 +43,25 @@ func (s *Service) CreateGame(ctx context.Context, req *proto.CreateGameRequest) 
 
 func (s *Service) GetGames(ctx context.Context, req *proto.GetGamesRequest) (*proto.GetGamesResponse, error) {
 	games, err := s.storage.GetGames(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	return &proto.GetGamesResponse{
 		Games: games,
-	}, err
+	}, nil
+}
+
+func (s *Service) JoinGame(ctx context.Context, req *proto.JoinGameRequest) (*proto.JoinGameResponse, error) {
+	uuid, err := s.storage.JoinGame(ctx, domain.JoinGameDTO{
+		HostNickname:     req.HostNickname,
+		OpponentNickname: req.OpponentNickname,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &proto.JoinGameResponse{
+		UUID: uuid,
+	}, nil
 }

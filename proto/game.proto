@@ -18,6 +18,12 @@ service GameService {
             get: "/games"
         };
     };
+    rpc JoinGame (JoinGameRequest) returns (JoinGameResponse) {
+        option (google.api.http) = {
+            post: "/games/join"
+            body: "*"
+        };
+    };
 }
 
 message CreateGameRequest {
@@ -33,4 +39,13 @@ message GetGamesRequest {}
 
 message GetGamesResponse {
     repeated string Games = 1;
+}
+
+message JoinGameRequest {
+    string HostNickname = 1;
+	string OpponentNickname = 2;
+}
+
+message JoinGameResponse {
+    string UUID = 1;
 }
