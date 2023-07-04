@@ -30,36 +30,66 @@ service GameService {
             body: "*"
         };
     };
+    rpc Shoot (ShootRequest) returns (ShootResponse) {
+        option (google.api.http) = {
+            post: "/games/shoot"
+            body: "*"
+        };
+    };
 }
 
 message CreateGameRequest {
-    string HostNickname = 1;
-    string HostField = 2;
+    string host_nickname = 1;
+    string host_field = 2;
 }
 
 message CreateGameResponse {
-    string UUID = 1;
+    string host_uuid = 1;
 }
 
 message GetGamesRequest {}
 
 message GetGamesResponse {
-    repeated string Games = 1;
+    repeated string games = 1;
 }
 
 message JoinGameRequest {
-    string HostNickname = 1;
-	string OpponentNickname = 2;
+    string host_nickname = 1;
+	string opponent_nickname = 2;
 }
 
 message JoinGameResponse {
-    string UUID = 1;
+    string opponent_uuid = 1;
 }
 
 message StartGameRequest {
-    string HostNickname = 1;
-    string OpponentField = 2;
-    string UUID = 3;
+    string host_nickname = 1;
+    string opponent_field = 2;
+    string opponent_uuid = 3;
 }
 
 message StartGameResponse {}
+
+message ShootRequest {
+    string host_nickname = 1;
+    uint32 x = 2;
+    uint32 y = 3;
+    string uuid = 4;
+}
+
+enum Status {
+    UNKNOWN = 0;
+    GAME_CREATED = 1;
+    WAITING_FOR_OPPONENT = 2;
+    GAME_STARTED = 3;
+    HOST_HIT = 4;
+    HOST_MISS = 5;
+    OPPONENT_HIT = 6;
+    OPPONENT_MISS = 7;
+    HOST_WON = 8;
+    OPPONENT_WON = 9;
+}
+
+message ShootResponse {
+    Status status = 1;
+}

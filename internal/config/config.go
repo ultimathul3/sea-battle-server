@@ -4,6 +4,10 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
+const (
+	EnvFilePath = ".env"
+)
+
 type Config struct {
 	HTTP struct {
 		IP   string `env:"HTTP_IP"`
@@ -27,7 +31,7 @@ type Config struct {
 func ReadEnvFile() (*Config, error) {
 	var cfg Config
 
-	err := cleanenv.ReadConfig(".env", &cfg)
+	err := cleanenv.ReadConfig(EnvFilePath, &cfg)
 
 	return &cfg, err
 }

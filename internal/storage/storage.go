@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -12,18 +11,9 @@ const (
 	opponentNicknameKey = "opponent_nickname"
 	hostFieldKey        = "host_field"
 	opponentFieldKey    = "opponent_field"
-	uuidKey             = "uuid"
+	hostUuidKey         = "host_uuid"
+	opponentUuidKey     = "opponent_uuid"
 	statusKey           = "status"
-)
-
-const (
-	GameCreated int = iota
-	GameWaitingForOpponent
-	GameStarted
-)
-
-var (
-	ErrGameDoesNotExist = errors.New("game does not exist")
 )
 
 func getGameKey(hostNickname string, key string) string {

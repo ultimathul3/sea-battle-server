@@ -29,7 +29,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/rpcStatus"
+              "$ref": "#/definitions/googlerpcStatus"
             }
           }
         },
@@ -49,7 +49,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/rpcStatus"
+              "$ref": "#/definitions/googlerpcStatus"
             }
           }
         },
@@ -81,7 +81,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/rpcStatus"
+              "$ref": "#/definitions/googlerpcStatus"
             }
           }
         },
@@ -92,6 +92,38 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/gameJoinGameRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GameService"
+        ]
+      }
+    },
+    "/games/shoot": {
+      "post": {
+        "operationId": "GameService_Shoot",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gameShootResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gameShootRequest"
             }
           }
         ],
@@ -113,7 +145,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/rpcStatus"
+              "$ref": "#/definitions/googlerpcStatus"
             }
           }
         },
@@ -137,10 +169,10 @@
     "gameCreateGameRequest": {
       "type": "object",
       "properties": {
-        "HostNickname": {
+        "host_nickname": {
           "type": "string"
         },
-        "HostField": {
+        "host_field": {
           "type": "string"
         }
       }
@@ -148,7 +180,7 @@
     "gameCreateGameResponse": {
       "type": "object",
       "properties": {
-        "UUID": {
+        "host_uuid": {
           "type": "string"
         }
       }
@@ -156,7 +188,7 @@
     "gameGetGamesResponse": {
       "type": "object",
       "properties": {
-        "Games": {
+        "games": {
           "type": "array",
           "items": {
             "type": "string"
@@ -167,10 +199,10 @@
     "gameJoinGameRequest": {
       "type": "object",
       "properties": {
-        "HostNickname": {
+        "host_nickname": {
           "type": "string"
         },
-        "OpponentNickname": {
+        "opponent_nickname": {
           "type": "string"
         }
       }
@@ -178,21 +210,48 @@
     "gameJoinGameResponse": {
       "type": "object",
       "properties": {
-        "UUID": {
+        "opponent_uuid": {
           "type": "string"
+        }
+      }
+    },
+    "gameShootRequest": {
+      "type": "object",
+      "properties": {
+        "host_nickname": {
+          "type": "string"
+        },
+        "x": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "y": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "uuid": {
+          "type": "string"
+        }
+      }
+    },
+    "gameShootResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/gameStatus"
         }
       }
     },
     "gameStartGameRequest": {
       "type": "object",
       "properties": {
-        "HostNickname": {
+        "host_nickname": {
           "type": "string"
         },
-        "OpponentField": {
+        "opponent_field": {
           "type": "string"
         },
-        "UUID": {
+        "opponent_uuid": {
           "type": "string"
         }
       }
@@ -200,16 +259,23 @@
     "gameStartGameResponse": {
       "type": "object"
     },
-    "protobufAny": {
-      "type": "object",
-      "properties": {
-        "@type": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": {}
+    "gameStatus": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "GAME_CREATED",
+        "WAITING_FOR_OPPONENT",
+        "GAME_STARTED",
+        "HOST_HIT",
+        "HOST_MISS",
+        "OPPONENT_HIT",
+        "OPPONENT_MISS",
+        "HOST_WON",
+        "OPPONENT_WON"
+      ],
+      "default": "UNKNOWN"
     },
-    "rpcStatus": {
+    "googlerpcStatus": {
       "type": "object",
       "properties": {
         "code": {
@@ -227,6 +293,15 @@
           }
         }
       }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
     }
   }
 }
