@@ -112,7 +112,7 @@ func (s *Service) Shoot(ctx context.Context, req *proto.ShootRequest) (*proto.Sh
 		return nil, err
 	}
 
-	fieldIndex := req.X*domain.FieldSize + req.Y
+	fieldIndex := req.X*domain.FieldDimension + req.Y
 	shootDTO := domain.ShootDTO{
 		HostNickname: req.HostNickname,
 		FieldIndex:   fieldIndex,

@@ -1,0 +1,189 @@
+package domain
+
+import (
+	"testing"
+)
+
+func TestFieldValidation(t *testing.T) {
+	validTests := []struct {
+		field string
+	}{
+		{
+			ConvertFieldRuneMatrixToString([][]rune{
+				[]rune("~~~~~~~~~~~~"),
+				[]rune("~*xxxxxxxx1~"),
+				[]rune("~*x1x1x1xxx~"),
+				[]rune("~*xxxxxxxx*~"),
+				[]rune("~**xxxxx2x*~"),
+				[]rune("~**x#←◄x▲x*~"),
+				[]rune("~xxxxxxxxx*~"),
+				[]rune("~x4x3x2xxxx~"),
+				[]rune("~x↑x↑x▲xx@◄~"),
+				[]rune("~x↑x▲xxxxxx~"),
+				[]rune("~x▲xxx*****~"),
+				[]rune("~~~~~~~~~~~~"),
+			}),
+		},
+		{
+			ConvertFieldRuneMatrixToString([][]rune{
+				[]rune("~~~~~~~~~~~~"),
+				[]rune("~1x3x3x**x1~"),
+				[]rune("~xx↑x↑x**xx~"),
+				[]rune("~4x▲x▲xxxx*~"),
+				[]rune("~↑xxxxxx2x*~"),
+				[]rune("~↑x2x2xx▲x*~"),
+				[]rune("~▲x▲x▲xxxx*~"),
+				[]rune("~xxxxxx****~"),
+				[]rune("~**********~"),
+				[]rune("~xx******xx~"),
+				[]rune("~1x******x1~"),
+				[]rune("~~~~~~~~~~~~"),
+			}),
+		},
+		{
+			ConvertFieldRuneMatrixToString([][]rune{
+				[]rune("~~~~~~~~~~~~"),
+				[]rune("~xx*xxxx*xx~"),
+				[]rune("~1x*x@◄x*x1~"),
+				[]rune("~xxxxxxxxxx~"),
+				[]rune("~#←◄x***x@◄~"),
+				[]rune("~xxxxx*xxxx~"),
+				[]rune("~$←←◄x*x@◄x~"),
+				[]rune("~xxxxx*xxxx~"),
+				[]rune("~xx******xx~"),
+				[]rune("~1xxxxx**x1~"),
+				[]rune("~xx#←◄x**xx~"),
+				[]rune("~~~~~~~~~~~~"),
+			}),
+		},
+	}
+
+	invalidTests := []struct {
+		field string
+	}{
+		{
+			ConvertFieldRuneMatrixToString([][]rune{
+				[]rune("~~~~~~~~~~~~"),
+				[]rune("~*xxxxxxx11~"),
+				[]rune("~*x1x1x1xxx~"),
+				[]rune("~*xxxxxxxx*~"),
+				[]rune("~**xxxxx2x*~"),
+				[]rune("~**x#←◄x▲x*~"),
+				[]rune("~xxxxxxxxx*~"),
+				[]rune("~x4x3x2xxxx~"),
+				[]rune("~x↑x↑x▲xx@◄~"),
+				[]rune("~x↑x▲xxxxxx~"),
+				[]rune("~x▲xxx*****~"),
+				[]rune("~~~~~~~~~~~~"),
+			}),
+		},
+		{
+			ConvertFieldRuneMatrixToString([][]rune{
+				[]rune("~~~~~~~~~~~~"),
+				[]rune("~*xxxxxxxx1~"),
+				[]rune("~*x1x1x1xxx~"),
+				[]rune("~*xxxxxxxx*~"),
+				[]rune("~**xxxxx2x*~"),
+				[]rune("~**x#←◄x▲x*~"),
+				[]rune("~xxxxxxxxx*~"),
+				[]rune("~x4x3x2xxxx~"),
+				[]rune("~x↑x↑x▲*x@◄~"),
+				[]rune("~x↑x▲xxxxxx~"),
+				[]rune("~x▲xxx*****~"),
+				[]rune("~~~~~~~~~~~~"),
+			}),
+		},
+		{
+			ConvertFieldRuneMatrixToString([][]rune{
+				[]rune("~~~~~~~~~~~~"),
+				[]rune("~*xxxxxxxx1~"),
+				[]rune("~*x1x1x1xxx~"),
+				[]rune("~*xxxxxxxx*~"),
+				[]rune("~**xxxxx2x*~"),
+				[]rune("~**x#←◄x▲x*~"),
+				[]rune("~xxxxxxxxx*~"),
+				[]rune("~x4x3x2xxxx~"),
+				[]rune("~x↑x↑x▲xx@◄~"),
+				[]rune("~x↑x▲xxxxxx~"),
+				[]rune("~xxxxx*****~"),
+				[]rune("~~~~~~~~~~~~"),
+			}),
+		},
+		{
+			ConvertFieldRuneMatrixToString([][]rune{
+				[]rune("~~~~~~~~~~~~"),
+				[]rune("~*xxxxxxxx1~"),
+				[]rune("~*x1x1x1xxx~"),
+				[]rune("~*xxxxxxxx*~"),
+				[]rune("~**xxxxx2x*~"),
+				[]rune("~**x#←◄x▲x*~"),
+				[]rune("~xxxxxxxxx*~"),
+				[]rune("~x4x3x2xxxx~"),
+				[]rune("~x↑x↑x▲xx@◄~"),
+				[]rune("~x↑x▲xxxxxx~"),
+				[]rune("~x▲xxx***x1~"),
+				[]rune("~~~~~~~~~~~~"),
+			}),
+		},
+		{
+			ConvertFieldRuneMatrixToString([][]rune{
+				[]rune("~~~~~~~~~~~~"),
+				[]rune("~*xxxxxxxx1~"),
+				[]rune("~*x1x1x1xxx~"),
+				[]rune("~*xxxxxxxx*~"),
+				[]rune("~**xxxxx2x*~"),
+				[]rune("~**x#←◄x▲x*~"),
+				[]rune("~xxxxxxxxx*~"),
+				[]rune("~x4x3x2xxxx~"),
+				[]rune("~x↑x↑x◄xx@◄~"),
+				[]rune("~x↑x▲xxxxxx~"),
+				[]rune("~x▲xxx*****~"),
+				[]rune("~~~~~~~~~~~~"),
+			}),
+		},
+		{
+			ConvertFieldRuneMatrixToString([][]rune{
+				[]rune("~~~~~~~~~~~~"),
+				[]rune("~*xxxxxxxx1~"),
+				[]rune("~*x1x1x1xxx~"),
+				[]rune("~*xxxxxxxx*~"),
+				[]rune("~**xxxxx2x*~"),
+				[]rune("~**x#←◄x▲x*~"),
+				[]rune("~xxxxxxxxx*~"),
+				[]rune("~**x3x2xxxx~"),
+				[]rune("~**x↑x▲xx@◄~"),
+				[]rune("~**x▲xxxxxx~"),
+				[]rune("~**xxx*****~"),
+				[]rune("~~~~~~~~~~~~"),
+			}),
+		},
+		{
+			ConvertFieldRuneMatrixToString([][]rune{
+				[]rune("~~~~~~~~~~~~"),
+				[]rune("~*xxxxxxx**~"),
+				[]rune("~*x1x1x1x**~"),
+				[]rune("~*xxxxxxxx*~"),
+				[]rune("~**xxxxx2x*~"),
+				[]rune("~**x#←◄x▲x*~"),
+				[]rune("~xxxxxxxxx*~"),
+				[]rune("~**x3x2xxxx~"),
+				[]rune("~**x↑x▲xx@◄~"),
+				[]rune("~*xx▲xxxxxx~"),
+				[]rune("~*x1xx*****~"),
+				[]rune("~~~~~~~~~~~~"),
+			}),
+		},
+	}
+
+	for i, test := range validTests {
+		if !IsFieldValid(test.field) {
+			t.Errorf("%d field in 'validTests' is not valid", i+1)
+		}
+	}
+
+	for i, test := range invalidTests {
+		if IsFieldValid(test.field) {
+			t.Errorf("%d field in 'invalidTests' is valid", i+1)
+		}
+	}
+}

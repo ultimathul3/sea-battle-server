@@ -34,7 +34,9 @@ func (c *CreateGameDTO) Validate() error {
 	if !IsNicknameValid(c.HostNickname) {
 		return ErrInvalidHostNickname
 	}
-	// TODO: validate field
+	if !IsFieldValid(c.HostField) {
+		return ErrInvalidHostField
+	}
 	return nil
 }
 
@@ -52,7 +54,9 @@ func (s *StartGameDTO) Validate() error {
 	if !IsNicknameValid(s.HostNickname) {
 		return ErrInvalidHostNickname
 	}
-	// TODO: validate field
+	if !IsFieldValid(s.OpponentField) {
+		return ErrInvalidOpponentField
+	}
 	return nil
 }
 
@@ -67,7 +71,7 @@ func (s *ShootDTO) Validate() error {
 	if !IsNicknameValid(s.HostNickname) {
 		return ErrInvalidHostNickname
 	}
-	if s.FieldIndex > FieldSize*FieldSize-1 {
+	if s.FieldIndex > FieldDimension*FieldDimension-1 {
 		return ErrInvalidFieldIndex
 	}
 	return nil
