@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/ultimathul3/sea-battle-server/internal/domain"
@@ -13,7 +14,11 @@ type Storage interface {
 	GetGames(ctx context.Context) ([]string, error)
 	JoinGame(ctx context.Context, input domain.JoinGameDTO) error
 	StartGame(ctx context.Context, input domain.StartGameDTO) error
-	GetFieldForShoot(ctx context.Context, input domain.GetFieldForShootDTO) (string, error)
+	GetRoleByUuid(ctx context.Context, input domain.GetRoleByUuidDTO) (domain.Role, error)
+	GetStatus(ctx context.Context, input domain.GetStatusDTO) (domain.Status, error)
+	SetStatus(ctx context.Context, input domain.SetStatusDTO) error
+	GetField(ctx context.Context, input domain.GetFieldDTO) (string, error)
+	UpdateField(ctx context.Context, input domain.UpdateFieldDTO) error
 }
 
 type Service struct {
@@ -98,53 +103,127 @@ func (s *Service) StartGame(ctx context.Context, req *proto.StartGameRequest) (*
 }
 
 func (s *Service) Shoot(ctx context.Context, req *proto.ShootRequest) (*proto.ShootResponse, error) {
-	getFieldForShootDTO := domain.GetFieldForShootDTO{
+	status, err := s.storage.GetStatus(ctx, domain.GetStatusDTO{
 		HostNickname: req.HostNickname,
-		Uuid:         req.Uuid,
-	}
-	if err := getFieldForShootDTO.Validate(); err != nil {
-		return nil, err
-	}
-
-	// TODO
-	_, err := s.storage.GetFieldForShoot(ctx, getFieldForShootDTO)
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	fieldIndex := req.X*domain.FieldDimension + req.Y
-	shootDTO := domain.ShootDTO{
+	getRoleByUuidDTO := domain.GetRoleByUuidDTO{
 		HostNickname: req.HostNickname,
-		FieldIndex:   fieldIndex,
+		Uuid:         req.Uuid,
 	}
+	if err := getRoleByUuidDTO.Validate(); err != nil {
+		return nil, err
+	}
+
+	role, err := s.storage.GetRoleByUuid(ctx, getRoleByUuidDTO)
+	if err != nil {
+		return nil, err
+	}
+
+	switch role {
+	case domain.HostRole:
+		if status != domain.GameStartedStatus && status != domain.OpponentMissStatus && status != domain.HostHitStatus {
+			return nil, domain.ErrInvalidAction
+		}
+	case domain.OpponentRole:
+		if status != domain.HostMissStatus && status != domain.OpponentHitStatus {
+			return nil, domain.ErrInvalidAction
+		}
+	}
+
+	oppositeRole := domain.HostRole
+	if role == domain.HostRole {
+		oppositeRole = domain.OpponentRole
+	}
+
+	fmt.Println(role, oppositeRole)
+
+	getFieldDTO := domain.GetFieldDTO{
+		HostNickname: req.HostNickname,
+		Role:         oppositeRole,
+	}
+
+	field, err := s.storage.GetField(ctx, getFieldDTO)
+	if err != nil {
+		return nil, err
+	}
+
+	var x, y = req.X, req.Y
+	shootDTO := domain.ShootDTO{X: x, Y: y}
 	if err := shootDTO.Validate(); err != nil {
 		return nil, err
 	}
 
+	matrixField := domain.ConvertFieldToRuneMatrix(field)
+	switch matrixField[y+1][x+1] {
+	case domain.EmptyCell, domain.OccupiedCell:
+		matrixField[y+1][x+1] = domain.MissCell
+		if role == domain.HostRole {
+			status = domain.HostMissStatus
+		} else {
+			status = domain.OpponentMissStatus
+		}
+	case domain.SingleDeckShipCell,
+		domain.DoubleDeckShipDownCell, domain.ThreeDeckShipDownCell, domain.FourDeckShipDownCell,
+		domain.DoubleDeckShipRightCell, domain.ThreeDeckShipRightCell, domain.FourDeckShipRightCell,
+		domain.ShipLeftCell, domain.ShipUpCell, domain.ShipLeftEndCell, domain.ShipUpEndCell:
+		domain.Shoot(matrixField, int(y), int(x))
+		if role == domain.HostRole {
+			status = domain.HostHitStatus
+		} else {
+			status = domain.OpponentHitStatus
+		}
+	default:
+		return nil, domain.ErrInvalidHitCell
+	}
+
+	updateFieldDTO := domain.UpdateFieldDTO{
+		HostNickname: req.HostNickname,
+		Role:         oppositeRole,
+		Field:        domain.ConvertFieldRuneMatrixToString(matrixField),
+	}
+	if err := s.storage.UpdateField(ctx, updateFieldDTO); err != nil {
+		return nil, err
+	}
+
+	for i := 0; i < len(matrixField); i++ {
+		fmt.Println(string(matrixField[i]))
+	}
+
+	if err := s.storage.SetStatus(ctx, domain.SetStatusDTO{
+		HostNickname: req.HostNickname,
+		Status:       status,
+	}); err != nil {
+		return nil, err
+	}
+
 	return &proto.ShootResponse{
-		Status: convertStatusToProto(domain.Unknown),
+		Status: convertStatusToProto(status),
 	}, nil
 }
 
 func convertStatusToProto(status domain.Status) proto.Status {
 	switch status {
-	case domain.GameCreated:
+	case domain.GameCreatedStatus:
 		return proto.Status_GAME_CREATED
-	case domain.WaitingForOpponent:
+	case domain.WaitingForOpponentStatus:
 		return proto.Status_WAITING_FOR_OPPONENT
-	case domain.GameStarted:
+	case domain.GameStartedStatus:
 		return proto.Status_GAME_STARTED
-	case domain.HostHit:
+	case domain.HostHitStatus:
 		return proto.Status_HOST_HIT
-	case domain.HostMiss:
+	case domain.HostMissStatus:
 		return proto.Status_HOST_MISS
-	case domain.OpponentHit:
+	case domain.OpponentHitStatus:
 		return proto.Status_OPPONENT_HIT
-	case domain.OpponentMiss:
+	case domain.OpponentMissStatus:
 		return proto.Status_OPPONENT_MISS
-	case domain.HostWon:
+	case domain.HostWonStatus:
 		return proto.Status_HOST_WON
-	case domain.OpponentWon:
+	case domain.OpponentWonStatus:
 		return proto.Status_OPPONENT_WON
 	default:
 		return proto.Status_UNKNOWN

@@ -16,7 +16,7 @@ const (
 )
 
 const (
-	EmptyCell               = rune('*')
+	EmptyCell               = rune(' ')
 	OccupiedCell            = rune('x')
 	SingleDeckShipCell      = rune('1')
 	DoubleDeckShipDownCell  = rune('2')
@@ -29,6 +29,8 @@ const (
 	ShipLeftEndCell         = rune('◄')
 	ShipUpCell              = rune('↑')
 	ShipUpEndCell           = rune('▲')
+	HitCell                 = rune('o')
+	MissCell                = rune('.')
 	FrameCell               = rune('~')
 )
 
@@ -42,16 +44,24 @@ const (
 type Status uint8
 
 const (
-	Unknown Status = iota
-	GameCreated
-	WaitingForOpponent
-	GameStarted
-	HostHit
-	HostMiss
-	OpponentHit
-	OpponentMiss
-	HostWon
-	OpponentWon
+	UnknownStatus Status = iota
+	GameCreatedStatus
+	WaitingForOpponentStatus
+	GameStartedStatus
+	HostHitStatus
+	HostMissStatus
+	OpponentHitStatus
+	OpponentMissStatus
+	HostWonStatus
+	OpponentWonStatus
+)
+
+type Role uint8
+
+const (
+	UnknownRole Role = iota
+	HostRole
+	OpponentRole
 )
 
 type Game struct {
@@ -240,4 +250,150 @@ func AreBottomCellsOccupied(matrix [][]rune, i, j int) bool {
 
 func IsCellOccupied(matrix [][]rune, i, j int) bool {
 	return matrix[i][j] == OccupiedCell || matrix[i][j] == FrameCell
+}
+
+func Shoot(matrix [][]rune, i, j int) {
+	i++
+	j++
+
+	switch matrix[i][j] {
+	case SingleDeckShipCell:
+		matrix[i][j] = HitCell
+		FloodLeftCells(matrix, i, j)
+		FloodRightCells(matrix, i, j)
+		FloodTopAndBottomCells(matrix, i, j)
+	case DoubleDeckShipDownCell, ThreeDeckShipDownCell, FourDeckShipDownCell,
+		ShipUpCell, ShipUpEndCell:
+		matrix[i][j] = HitCell
+		if IsShipDownFlooded(matrix, i, j) {
+			FloodShipDown(matrix, i, j)
+		}
+	case DoubleDeckShipRightCell, ThreeDeckShipRightCell, FourDeckShipRightCell,
+		ShipLeftCell, ShipLeftEndCell:
+		matrix[i][j] = HitCell
+		if IsShipRightFlooded(matrix, i, j) {
+			FloodShipRight(matrix, i, j)
+		}
+	case EmptyCell, OccupiedCell:
+		matrix[i][j] = MissCell
+	}
+}
+
+func IsShipDownFlooded(matrix [][]rune, i, j int) bool {
+	upChecked := false
+	for k := 1; k < 4 && !upChecked; k++ {
+		switch matrix[i-k][j] {
+		case ShipUpCell, DoubleDeckShipDownCell, ThreeDeckShipDownCell, FourDeckShipDownCell:
+			return false
+		case EmptyCell, OccupiedCell, FrameCell, MissCell:
+			upChecked = true
+		}
+	}
+
+	downChecked := false
+	for k := 1; k < 4 && !downChecked; k++ {
+		switch matrix[i+k][j] {
+		case ShipUpCell, ShipUpEndCell:
+			return false
+		case EmptyCell, OccupiedCell, FrameCell, MissCell:
+			downChecked = true
+		}
+	}
+
+	return true
+}
+
+func IsShipRightFlooded(matrix [][]rune, i, j int) bool {
+	leftChecked := false
+	for k := 1; k < 4 && !leftChecked; k++ {
+		switch matrix[i][j-k] {
+		case ShipLeftCell, DoubleDeckShipRightCell, ThreeDeckShipRightCell, FourDeckShipRightCell:
+			return false
+		case EmptyCell, OccupiedCell, FrameCell, MissCell:
+			leftChecked = true
+		}
+	}
+
+	rightChecked := false
+	for k := 1; k < 4 && !rightChecked; k++ {
+		switch matrix[i][j+k] {
+		case ShipLeftCell, ShipLeftEndCell:
+			return false
+		case EmptyCell, OccupiedCell, FrameCell, MissCell:
+			rightChecked = true
+		}
+	}
+
+	return true
+}
+
+func FloodShipDown(matrix [][]rune, i, j int) {
+	k := 0
+	for IsCellForFlood(matrix, i-k, j) {
+		FloodLeftAndRightCells(matrix, i-k, j)
+		k++
+	}
+	FloodTopCells(matrix, i-k+1, j)
+
+	k = 1
+	for IsCellForFlood(matrix, i+k, j) {
+		FloodLeftAndRightCells(matrix, i+k, j)
+		k++
+	}
+	FloodBottomCells(matrix, i+k-1, j)
+}
+
+func FloodShipRight(matrix [][]rune, i, j int) {
+	k := 0
+	for IsCellForFlood(matrix, i, j-k) {
+		FloodTopAndBottomCells(matrix, i, j-k)
+		k++
+	}
+	FloodLeftCells(matrix, i, j-k+1)
+
+	k = 1
+	for IsCellForFlood(matrix, i, j+k) {
+		FloodTopAndBottomCells(matrix, i, j+k)
+		k++
+	}
+	FloodRightCells(matrix, i, j+k-1)
+}
+
+func IsCellForFlood(matrix [][]rune, i, j int) bool {
+	return matrix[i][j] != EmptyCell && matrix[i][j] != OccupiedCell &&
+		matrix[i][j] != FrameCell && matrix[i][j] != MissCell
+}
+
+func FloodTopAndBottomCells(matrix [][]rune, i, j int) {
+	matrix[i-1][j] = MissCell
+	matrix[i+1][j] = MissCell
+}
+
+func FloodLeftAndRightCells(matrix [][]rune, i, j int) {
+	matrix[i][j-1] = MissCell
+	matrix[i][j+1] = MissCell
+}
+
+func FloodLeftCells(matrix [][]rune, i, j int) {
+	matrix[i-1][j-1] = MissCell
+	matrix[i][j-1] = MissCell
+	matrix[i+1][j-1] = MissCell
+}
+
+func FloodRightCells(matrix [][]rune, i, j int) {
+	matrix[i-1][j+1] = MissCell
+	matrix[i][j+1] = MissCell
+	matrix[i+1][j+1] = MissCell
+}
+
+func FloodTopCells(matrix [][]rune, i, j int) {
+	matrix[i-1][j-1] = MissCell
+	matrix[i-1][j] = MissCell
+	matrix[i-1][j+1] = MissCell
+}
+
+func FloodBottomCells(matrix [][]rune, i, j int) {
+	matrix[i+1][j-1] = MissCell
+	matrix[i+1][j] = MissCell
+	matrix[i+1][j+1] = MissCell
 }

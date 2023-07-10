@@ -19,14 +19,35 @@ type (
 		OpponentUuid  string `json:"opponent_uuid"`
 	}
 
-	GetFieldForShootDTO struct {
+	GetRoleByUuidDTO struct {
 		HostNickname string `json:"host_nickname"`
 		Uuid         string `json:"uuid"`
 	}
 
-	ShootDTO struct {
+	GetFieldDTO struct {
 		HostNickname string `json:"host_nickname"`
-		FieldIndex   uint32 `json:"field_index"`
+		Role         Role   `json:"role"`
+	}
+
+	ShootDTO struct {
+		X uint32 `json:"x"`
+		Y uint32 `json:"y"`
+	}
+
+	UpdateFieldDTO struct {
+		HostNickname string `json:"host_nickname"`
+		Role         Role   `json:"role"`
+		Field        string `json:"field"`
+	}
+
+	GetStatusDTO struct {
+		HostNickname string `json:"host_nickname"`
+	}
+
+	SetStatusDTO struct {
+		HostNickname string `json:"host_nickname"`
+		Status       Status `json:"status"`
+		KeepTTL      bool   `json:"keep_ttl"`
 	}
 )
 
@@ -60,7 +81,14 @@ func (s *StartGameDTO) Validate() error {
 	return nil
 }
 
-func (g *GetFieldForShootDTO) Validate() error {
+func (g *GetRoleByUuidDTO) Validate() error {
+	if !IsNicknameValid(g.HostNickname) {
+		return ErrInvalidHostNickname
+	}
+	return nil
+}
+
+func (g *GetFieldDTO) Validate() error {
 	if !IsNicknameValid(g.HostNickname) {
 		return ErrInvalidHostNickname
 	}
@@ -68,11 +96,18 @@ func (g *GetFieldForShootDTO) Validate() error {
 }
 
 func (s *ShootDTO) Validate() error {
-	if !IsNicknameValid(s.HostNickname) {
+	if s.X > 9 || s.Y > 9 {
+		return ErrInvalidHitCell
+	}
+	return nil
+}
+
+func (u *UpdateFieldDTO) Validate() error {
+	if !IsNicknameValid(u.HostNickname) {
 		return ErrInvalidHostNickname
 	}
-	if s.FieldIndex > FieldDimension*FieldDimension-1 {
-		return ErrInvalidFieldIndex
+	if !IsFieldValid(u.Field) {
+		return ErrInvalidField
 	}
 	return nil
 }
