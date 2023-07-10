@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/ultimathul3/sea-battle-server/internal/domain"
@@ -139,8 +138,6 @@ func (s *Service) Shoot(ctx context.Context, req *proto.ShootRequest) (*proto.Sh
 		oppositeRole = domain.OpponentRole
 	}
 
-	fmt.Println(role, oppositeRole)
-
 	getFieldDTO := domain.GetFieldDTO{
 		HostNickname: req.HostNickname,
 		Role:         oppositeRole,
@@ -171,10 +168,19 @@ func (s *Service) Shoot(ctx context.Context, req *proto.ShootRequest) (*proto.Sh
 		domain.DoubleDeckShipRightCell, domain.ThreeDeckShipRightCell, domain.FourDeckShipRightCell,
 		domain.ShipLeftCell, domain.ShipUpCell, domain.ShipLeftEndCell, domain.ShipUpEndCell:
 		domain.Shoot(matrixField, int(y), int(x))
+
+		isWin := domain.IsWin(matrixField)
+
 		if role == domain.HostRole {
 			status = domain.HostHitStatus
+			if isWin {
+				status = domain.HostWonStatus
+			}
 		} else {
 			status = domain.OpponentHitStatus
+			if isWin {
+				status = domain.OpponentWonStatus
+			}
 		}
 	default:
 		return nil, domain.ErrInvalidHitCell
@@ -187,10 +193,6 @@ func (s *Service) Shoot(ctx context.Context, req *proto.ShootRequest) (*proto.Sh
 	}
 	if err := s.storage.UpdateField(ctx, updateFieldDTO); err != nil {
 		return nil, err
-	}
-
-	for i := 0; i < len(matrixField); i++ {
-		fmt.Println(string(matrixField[i]))
 	}
 
 	if err := s.storage.SetStatus(ctx, domain.SetStatusDTO{

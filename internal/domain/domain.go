@@ -397,3 +397,24 @@ func FloodBottomCells(matrix [][]rune, i, j int) {
 	matrix[i+1][j] = MissCell
 	matrix[i+1][j+1] = MissCell
 }
+
+func IsWin(matrix [][]rune) bool {
+	hitCells := 0
+	allShipsCells := RequiredSingleDeckShips +
+		RequiredDoubleDeckShips*2 +
+		RequiredThreeDeckShips*3 +
+		RequiredFourDeckShips*4
+
+	for i := 1; i < FieldDimension+1; i++ {
+		for j := 1; j < FieldDimension+1; j++ {
+			if matrix[i][j] == HitCell {
+				hitCells++
+				if hitCells == allShipsCells {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
+}
