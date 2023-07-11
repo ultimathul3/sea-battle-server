@@ -39,6 +39,11 @@ const (
 	RequiredDoubleDeckShips = 3
 	RequiredThreeDeckShips  = 2
 	RequiredFourDeckShips   = 1
+
+	AllShipsCellsNumber = RequiredSingleDeckShips +
+		RequiredDoubleDeckShips*2 +
+		RequiredThreeDeckShips*3 +
+		RequiredFourDeckShips*4
 )
 
 type Status uint8
@@ -72,6 +77,13 @@ type Game struct {
 	HostUuid         string `json:"host_uuid"`
 	OpponentUuid     string `json:"opponent_uuid"`
 	Status           Status `json:"status"`
+}
+
+type Event struct {
+	Status  Status `json:"status"`
+	X       uint32 `json:"x,omitempty"`
+	Y       uint32 `json:"y,omitempty"`
+	Message string `json:"message,omitempty"`
 }
 
 func IsNicknameValid(nickname string) bool {
@@ -400,16 +412,12 @@ func FloodBottomCells(matrix [][]rune, i, j int) {
 
 func IsWin(matrix [][]rune) bool {
 	hitCells := 0
-	allShipsCells := RequiredSingleDeckShips +
-		RequiredDoubleDeckShips*2 +
-		RequiredThreeDeckShips*3 +
-		RequiredFourDeckShips*4
 
 	for i := 1; i < FieldDimension+1; i++ {
 		for j := 1; j < FieldDimension+1; j++ {
 			if matrix[i][j] == HitCell {
 				hitCells++
-				if hitCells == allShipsCells {
+				if hitCells == AllShipsCellsNumber {
 					return true
 				}
 			}

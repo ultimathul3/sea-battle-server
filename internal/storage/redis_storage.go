@@ -215,3 +215,22 @@ func (s *Redis) UpdateField(ctx context.Context, input domain.UpdateFieldDTO) er
 		return domain.ErrGameDoesNotExist
 	}
 }
+
+func (s *Redis) GetUuid(ctx context.Context, input domain.GetUuidDTO) (string, error) {
+	switch input.Role {
+	case domain.HostRole:
+		uuid, err := s.client.Get(ctx, getGameKey(input.HostNickname, hostUuidKey)).Result()
+		if err != nil {
+			return "", err
+		}
+		return uuid, nil
+	case domain.OpponentRole:
+		uuid, err := s.client.Get(ctx, getGameKey(input.HostNickname, opponentUuidKey)).Result()
+		if err != nil {
+			return "", err
+		}
+		return uuid, nil
+	default:
+		return "", domain.ErrGameDoesNotExist
+	}
+}

@@ -24,6 +24,7 @@ const (
 	GameService_JoinGame_FullMethodName   = "/game.GameService/JoinGame"
 	GameService_StartGame_FullMethodName  = "/game.GameService/StartGame"
 	GameService_Shoot_FullMethodName      = "/game.GameService/Shoot"
+	GameService_Wait_FullMethodName       = "/game.GameService/Wait"
 )
 
 // GameServiceClient is the client API for GameService service.
@@ -35,6 +36,7 @@ type GameServiceClient interface {
 	JoinGame(ctx context.Context, in *JoinGameRequest, opts ...grpc.CallOption) (*JoinGameResponse, error)
 	StartGame(ctx context.Context, in *StartGameRequest, opts ...grpc.CallOption) (*StartGameResponse, error)
 	Shoot(ctx context.Context, in *ShootRequest, opts ...grpc.CallOption) (*ShootResponse, error)
+	Wait(ctx context.Context, in *WaitRequest, opts ...grpc.CallOption) (*WaitResponse, error)
 }
 
 type gameServiceClient struct {
@@ -90,6 +92,15 @@ func (c *gameServiceClient) Shoot(ctx context.Context, in *ShootRequest, opts ..
 	return out, nil
 }
 
+func (c *gameServiceClient) Wait(ctx context.Context, in *WaitRequest, opts ...grpc.CallOption) (*WaitResponse, error) {
+	out := new(WaitResponse)
+	err := c.cc.Invoke(ctx, GameService_Wait_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GameServiceServer is the server API for GameService service.
 // All implementations must embed UnimplementedGameServiceServer
 // for forward compatibility
@@ -99,6 +110,7 @@ type GameServiceServer interface {
 	JoinGame(context.Context, *JoinGameRequest) (*JoinGameResponse, error)
 	StartGame(context.Context, *StartGameRequest) (*StartGameResponse, error)
 	Shoot(context.Context, *ShootRequest) (*ShootResponse, error)
+	Wait(context.Context, *WaitRequest) (*WaitResponse, error)
 	mustEmbedUnimplementedGameServiceServer()
 }
 
@@ -120,6 +132,9 @@ func (UnimplementedGameServiceServer) StartGame(context.Context, *StartGameReque
 }
 func (UnimplementedGameServiceServer) Shoot(context.Context, *ShootRequest) (*ShootResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Shoot not implemented")
+}
+func (UnimplementedGameServiceServer) Wait(context.Context, *WaitRequest) (*WaitResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Wait not implemented")
 }
 func (UnimplementedGameServiceServer) mustEmbedUnimplementedGameServiceServer() {}
 
@@ -224,6 +239,24 @@ func _GameService_Shoot_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GameService_Wait_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WaitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GameServiceServer).Wait(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GameService_Wait_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GameServiceServer).Wait(ctx, req.(*WaitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GameService_ServiceDesc is the grpc.ServiceDesc for GameService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -250,6 +283,10 @@ var GameService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Shoot",
 			Handler:    _GameService_Shoot_Handler,
+		},
+		{
+			MethodName: "Wait",
+			Handler:    _GameService_Wait_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

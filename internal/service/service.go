@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/ultimathul3/sea-battle-server/internal/domain"
@@ -18,16 +19,21 @@ type Storage interface {
 	SetStatus(ctx context.Context, input domain.SetStatusDTO) error
 	GetField(ctx context.Context, input domain.GetFieldDTO) (string, error)
 	UpdateField(ctx context.Context, input domain.UpdateFieldDTO) error
+	GetUuid(ctx context.Context, input domain.GetUuidDTO) (string, error)
 }
 
 type Service struct {
 	proto.UnimplementedGameServiceServer
-	storage Storage
+	storage    Storage
+	events     map[string]chan domain.Event
+	timestamps map[string]time.Time
 }
 
 func New(storage Storage) *Service {
 	return &Service{
-		storage: storage,
+		storage:    storage,
+		events:     make(map[string]chan domain.Event),
+		timestamps: make(map[string]time.Time),
 	}
 }
 
@@ -46,6 +52,9 @@ func (s *Service) CreateGame(ctx context.Context, req *proto.CreateGameRequest) 
 	if err := s.storage.CreateGame(ctx, createGameDTO); err != nil {
 		return nil, err
 	}
+
+	s.events[hostUUID] = make(chan domain.Event, domain.AllShipsCellsNumber)
+	s.timestamps[hostUUID] = time.Now()
 
 	return &proto.CreateGameResponse{
 		HostUuid: hostUUID,
@@ -79,6 +88,29 @@ func (s *Service) JoinGame(ctx context.Context, req *proto.JoinGameRequest) (*pr
 		return nil, err
 	}
 
+	s.events[opponentUuid] = make(chan domain.Event, domain.AllShipsCellsNumber)
+	s.timestamps[opponentUuid] = time.Now()
+
+	hostUuid, err := s.storage.GetUuid(ctx, domain.GetUuidDTO{
+		HostNickname: req.HostNickname,
+		Role:         domain.HostRole,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	status, err := s.storage.GetStatus(ctx, domain.GetStatusDTO{
+		HostNickname: req.HostNickname,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	s.events[hostUuid] <- domain.Event{
+		Status:  status,
+		Message: req.OpponentNickname,
+	}
+
 	return &proto.JoinGameResponse{
 		OpponentUuid: opponentUuid,
 	}, nil
@@ -96,6 +128,25 @@ func (s *Service) StartGame(ctx context.Context, req *proto.StartGameRequest) (*
 
 	if err := s.storage.StartGame(ctx, startGameDTO); err != nil {
 		return nil, err
+	}
+
+	hostUuid, err := s.storage.GetUuid(ctx, domain.GetUuidDTO{
+		HostNickname: req.HostNickname,
+		Role:         domain.HostRole,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	status, err := s.storage.GetStatus(ctx, domain.GetStatusDTO{
+		HostNickname: req.HostNickname,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	s.events[hostUuid] <- domain.Event{
+		Status: status,
 	}
 
 	return &proto.StartGameResponse{}, nil
@@ -202,8 +253,38 @@ func (s *Service) Shoot(ctx context.Context, req *proto.ShootRequest) (*proto.Sh
 		return nil, err
 	}
 
+	oppositeRoleUuid, err := s.storage.GetUuid(ctx, domain.GetUuidDTO{
+		HostNickname: req.HostNickname,
+		Role:         oppositeRole,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	s.events[oppositeRoleUuid] <- domain.Event{
+		Status: status,
+		X:      x,
+		Y:      y,
+	}
+
 	return &proto.ShootResponse{
 		Status: convertStatusToProto(status),
+	}, nil
+}
+
+func (s *Service) Wait(ctx context.Context, req *proto.WaitRequest) (*proto.WaitResponse, error) {
+	ch, ok := s.events[req.Uuid]
+	if !ok {
+		return nil, domain.ErrGameDoesNotExist
+	}
+
+	event := <-ch
+
+	return &proto.WaitResponse{
+		Status:  convertStatusToProto(event.Status),
+		X:       event.X,
+		Y:       event.Y,
+		Message: event.Message,
 	}, nil
 }
 

@@ -163,6 +163,38 @@
           "GameService"
         ]
       }
+    },
+    "/games/wait": {
+      "post": {
+        "operationId": "GameService_Wait",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gameWaitResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gameWaitRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GameService"
+        ]
+      }
     }
   },
   "definitions": {
@@ -274,6 +306,33 @@
         "OPPONENT_WON"
       ],
       "default": "UNKNOWN"
+    },
+    "gameWaitRequest": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        }
+      }
+    },
+    "gameWaitResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/gameStatus"
+        },
+        "x": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "y": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
     },
     "googlerpcStatus": {
       "type": "object",

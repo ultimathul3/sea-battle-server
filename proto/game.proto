@@ -36,6 +36,12 @@ service GameService {
             body: "*"
         };
     };
+    rpc Wait (WaitRequest) returns (WaitResponse) {
+        option (google.api.http) = {
+            post: "/games/wait"
+            body: "*"
+        };
+    };
 }
 
 message CreateGameRequest {
@@ -92,4 +98,15 @@ enum Status {
 
 message ShootResponse {
     Status status = 1;
+}
+
+message WaitRequest {
+    string uuid = 1;
+}
+
+message WaitResponse {
+    Status status = 1;
+    uint32 x = 2;
+    uint32 y = 3;
+    string message = 4;
 }

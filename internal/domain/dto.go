@@ -49,6 +49,11 @@ type (
 		Status       Status `json:"status"`
 		KeepTTL      bool   `json:"keep_ttl"`
 	}
+
+	GetUuidDTO struct {
+		HostNickname string `json:"host_nickname"`
+		Role         Role   `json:"role"`
+	}
 )
 
 func (c *CreateGameDTO) Validate() error {
