@@ -37,6 +37,17 @@ func New(storage Storage) *Service {
 	}
 }
 
+func (s *Service) ObserveEventsTTL(eventsTTL time.Duration) {
+	for range time.Tick(eventsTTL) {
+		for uuid, timestamp := range s.timestamps {
+			if time.Since(timestamp) > eventsTTL {
+				delete(s.events, uuid)
+				delete(s.timestamps, uuid)
+			}
+		}
+	}
+}
+
 func (s *Service) CreateGame(ctx context.Context, req *proto.CreateGameRequest) (*proto.CreateGameResponse, error) {
 	hostUUID := uuid.NewString()
 

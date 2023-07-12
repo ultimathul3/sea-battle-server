@@ -21,8 +21,9 @@ func Run(cfg *config.Config) error {
 		return err
 	}
 
-	storage := storage.NewRedis(redisClient)
-	service := service.New(storage)
+	redis := storage.NewRedis(redisClient)
+	service := service.New(redis)
+	go service.ObserveEventsTTL(storage.KeysTTL)
 
 	go func() {
 		errc <- runGrpcServer(cfg)

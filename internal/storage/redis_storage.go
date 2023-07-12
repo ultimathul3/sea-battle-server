@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	keysTTL = 20 * time.Minute
+	KeysTTL = 20 * time.Minute
 )
 
 type Redis struct {
@@ -32,10 +32,10 @@ func (s *Redis) CreateGame(ctx context.Context, input domain.CreateGameDTO) erro
 	if err := s.client.SAdd(ctx, gamesSetKey, input.HostNickname).Err(); err != nil {
 		return err
 	}
-	if err := s.client.Set(ctx, getGameKey(input.HostNickname, hostFieldKey), input.HostField, keysTTL).Err(); err != nil {
+	if err := s.client.Set(ctx, getGameKey(input.HostNickname, hostFieldKey), input.HostField, KeysTTL).Err(); err != nil {
 		return err
 	}
-	if err := s.client.Set(ctx, getGameKey(input.HostNickname, hostUuidKey), input.HostUuid, keysTTL).Err(); err != nil {
+	if err := s.client.Set(ctx, getGameKey(input.HostNickname, hostUuidKey), input.HostUuid, KeysTTL).Err(); err != nil {
 		return err
 	}
 	if err := s.SetStatus(ctx, domain.SetStatusDTO{
@@ -92,10 +92,10 @@ func (s *Redis) JoinGame(ctx context.Context, input domain.JoinGameDTO) error {
 	}); err != nil {
 		return err
 	}
-	if err := s.client.Set(ctx, getGameKey(input.HostNickname, opponentNicknameKey), input.OpponentNickname, keysTTL).Err(); err != nil {
+	if err := s.client.Set(ctx, getGameKey(input.HostNickname, opponentNicknameKey), input.OpponentNickname, KeysTTL).Err(); err != nil {
 		return err
 	}
-	if err := s.client.Set(ctx, getGameKey(input.HostNickname, opponentUuidKey), input.OpponentUuid, keysTTL).Err(); err != nil {
+	if err := s.client.Set(ctx, getGameKey(input.HostNickname, opponentUuidKey), input.OpponentUuid, KeysTTL).Err(); err != nil {
 		return err
 	}
 
@@ -123,7 +123,7 @@ func (s *Redis) StartGame(ctx context.Context, input domain.StartGameDTO) error 
 		return domain.ErrGameDoesNotExist
 	}
 
-	if err := s.client.Set(ctx, getGameKey(input.HostNickname, opponentFieldKey), input.OpponentField, keysTTL).Err(); err != nil {
+	if err := s.client.Set(ctx, getGameKey(input.HostNickname, opponentFieldKey), input.OpponentField, KeysTTL).Err(); err != nil {
 		return err
 	}
 	if err := s.SetStatus(ctx, domain.SetStatusDTO{
@@ -177,7 +177,7 @@ func (s *Redis) SetStatus(ctx context.Context, input domain.SetStatusDTO) error 
 	if input.KeepTTL {
 		return s.client.Set(ctx, getGameKey(input.HostNickname, statusKey), uint8(input.Status), redis.KeepTTL).Err()
 	}
-	return s.client.Set(ctx, getGameKey(input.HostNickname, statusKey), uint8(input.Status), keysTTL).Err()
+	return s.client.Set(ctx, getGameKey(input.HostNickname, statusKey), uint8(input.Status), KeysTTL).Err()
 }
 
 func (s *Redis) GetField(ctx context.Context, input domain.GetFieldDTO) (string, error) {
