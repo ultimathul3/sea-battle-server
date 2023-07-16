@@ -96,8 +96,10 @@ func ConvertFieldToRuneMatrix(field string) [][]rune {
 	matrix := make([][]rune, 0, FieldDimension+2)
 
 	frame := make([]rune, 0, FieldDimension+2)
+	frame2 := make([]rune, 0, FieldDimension+2)
 	for i := 0; i < FieldDimension+2; i++ {
 		frame = append(frame, FrameCell)
+		frame2 = append(frame2, FrameCell)
 	}
 
 	matrix = append(matrix, frame)
@@ -106,7 +108,7 @@ func ConvertFieldToRuneMatrix(field string) [][]rune {
 		row = append(row, FrameCell)
 		matrix = append(matrix, row)
 	}
-	matrix = append(matrix, frame)
+	matrix = append(matrix, frame2)
 
 	return matrix
 }
