@@ -12,6 +12,22 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
+func enableCors(origin, methods string, h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", origin)
+		w.Header().Set("Access-Control-Allow-Methods", methods)
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Content-Type", "application/json")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		h.ServeHTTP(w, r)
+	})
+}
+
 func runRestServer(ctx context.Context, service *service.Service, cfg *config.Config) error {
 	gmux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{
 		Marshaler: &runtime.JSONPb{
@@ -33,6 +49,6 @@ func runRestServer(ctx context.Context, service *service.Service, cfg *config.Co
 
 	return http.ListenAndServe(
 		fmt.Sprintf("%s:%d", cfg.HTTP.IP, cfg.HTTP.Port),
-		mux,
+		enableCors(cfg.Cors.AllowOrigin, cfg.Cors.AllowMethods, mux),
 	)
 }

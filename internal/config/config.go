@@ -26,6 +26,11 @@ type Config struct {
 		Password string `env:"REDIS_PASSWORD"`
 		DB       int    `env:"REDIS_DB"`
 	}
+
+	Cors struct {
+		AllowOrigin  string `env:"CORS_ALLOW_ORIGIN"`
+		AllowMethods string `env:"CORS_ALLOW_METHODS"`
+	}
 }
 
 func ReadEnvFile() (*Config, error) {
