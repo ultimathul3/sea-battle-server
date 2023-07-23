@@ -216,6 +216,9 @@ func (s *Service) Shoot(ctx context.Context, req *proto.ShootRequest) (*proto.Sh
 		return nil, err
 	}
 
+	destroyedShip := domain.UnknownShip
+	var destroyedX, destroyedY int
+
 	matrixField := domain.ConvertFieldToRuneMatrix(field)
 	switch matrixField[y+1][x+1] {
 	case domain.EmptyCell, domain.OccupiedCell:
@@ -229,7 +232,7 @@ func (s *Service) Shoot(ctx context.Context, req *proto.ShootRequest) (*proto.Sh
 		domain.DoubleDeckShipDownCell, domain.ThreeDeckShipDownCell, domain.FourDeckShipDownCell,
 		domain.DoubleDeckShipRightCell, domain.ThreeDeckShipRightCell, domain.FourDeckShipRightCell,
 		domain.ShipLeftCell, domain.ShipUpCell, domain.ShipLeftEndCell, domain.ShipUpEndCell:
-		domain.Shoot(matrixField, int(y), int(x))
+		destroyedShip, destroyedX, destroyedY = domain.Shoot(matrixField, int(y), int(x))
 
 		isWin := domain.IsWin(matrixField)
 
@@ -278,6 +281,15 @@ func (s *Service) Shoot(ctx context.Context, req *proto.ShootRequest) (*proto.Sh
 		Y:      y,
 	}
 
+	if destroyedShip != domain.UnknownShip {
+		return &proto.ShootResponse{
+			Status:        convertStatusToProto(status),
+			X:             uint32(destroyedX),
+			Y:             uint32(destroyedY),
+			DestroyedShip: convertShipToProto(destroyedShip),
+		}, nil
+	}
+
 	return &proto.ShootResponse{
 		Status: convertStatusToProto(status),
 	}, nil
@@ -320,6 +332,27 @@ func convertStatusToProto(status domain.Status) proto.Status {
 	case domain.OpponentWonStatus:
 		return proto.Status_OPPONENT_WON
 	default:
-		return proto.Status_UNKNOWN
+		return proto.Status_UNKNOWN_STATUS
+	}
+}
+
+func convertShipToProto(ship domain.Ship) proto.Ship {
+	switch ship {
+	case domain.SingleDeckShip:
+		return proto.Ship_SINGLE_DECK
+	case domain.DoubleDeckShipDown:
+		return proto.Ship_DOUBLE_DECK_DOWN
+	case domain.ThreeDeckShipDown:
+		return proto.Ship_THREE_DECK_DOWN
+	case domain.FourDeckShipDown:
+		return proto.Ship_FOUR_DECK_DOWN
+	case domain.DoubleDeckShipRight:
+		return proto.Ship_DOUBLE_DECK_RIGHT
+	case domain.ThreeDeckShipRight:
+		return proto.Ship_THREE_DECK_RIGHT
+	case domain.FourDeckShipRight:
+		return proto.Ship_FOUR_DECK_RIGHT
+	default:
+		return proto.Ship_UNKNOWN_SHIP
 	}
 }

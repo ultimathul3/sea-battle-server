@@ -84,7 +84,7 @@ message ShootRequest {
 }
 
 enum Status {
-    UNKNOWN = 0;
+    UNKNOWN_STATUS = 0;
     GAME_CREATED = 1;
     WAITING_FOR_OPPONENT = 2;
     GAME_STARTED = 3;
@@ -96,8 +96,22 @@ enum Status {
     OPPONENT_WON = 9;
 }
 
+enum Ship {
+    UNKNOWN_SHIP = 0;
+    SINGLE_DECK = 1;
+    DOUBLE_DECK_DOWN = 2;
+    THREE_DECK_DOWN = 3;
+    FOUR_DECK_DOWN = 4;
+    DOUBLE_DECK_RIGHT = 5;
+    THREE_DECK_RIGHT = 6;
+    FOUR_DECK_RIGHT = 7;
+}
+
 message ShootResponse {
     Status status = 1;
+    Ship destroyed_ship = 2;
+    uint32 x = 3;
+    uint32 y = 4;
 }
 
 message WaitRequest {

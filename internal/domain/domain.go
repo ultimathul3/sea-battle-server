@@ -34,6 +34,19 @@ const (
 	FrameCell               = rune('~')
 )
 
+type Ship uint8
+
+const (
+	UnknownShip Ship = iota
+	SingleDeckShip
+	DoubleDeckShipDown
+	ThreeDeckShipDown
+	FourDeckShipDown
+	DoubleDeckShipRight
+	ThreeDeckShipRight
+	FourDeckShipRight
+)
+
 const (
 	RequiredSingleDeckShips = 4
 	RequiredDoubleDeckShips = 3
@@ -266,9 +279,12 @@ func IsCellOccupied(matrix [][]rune, i, j int) bool {
 	return matrix[i][j] == OccupiedCell || matrix[i][j] == FrameCell
 }
 
-func Shoot(matrix [][]rune, i, j int) {
+func Shoot(matrix [][]rune, i, j int) (Ship, int, int) {
 	i++
 	j++
+
+	ship := UnknownShip
+	x, y := j-1, i-1
 
 	switch matrix[i][j] {
 	case SingleDeckShipCell:
@@ -276,69 +292,114 @@ func Shoot(matrix [][]rune, i, j int) {
 		FloodLeftCells(matrix, i, j)
 		FloodRightCells(matrix, i, j)
 		FloodTopAndBottomCells(matrix, i, j)
+		ship = SingleDeckShip
 	case DoubleDeckShipDownCell, ThreeDeckShipDownCell, FourDeckShipDownCell,
 		ShipUpCell, ShipUpEndCell:
 		matrix[i][j] = HitCell
-		if IsShipDownFlooded(matrix, i, j) {
+		if isFlooded, floodedShip, sx, sy := IsShipDownFlooded(matrix, i, j); isFlooded {
 			FloodShipDown(matrix, i, j)
+			ship = floodedShip
+			x = sx
+			y = sy
 		}
 	case DoubleDeckShipRightCell, ThreeDeckShipRightCell, FourDeckShipRightCell,
 		ShipLeftCell, ShipLeftEndCell:
 		matrix[i][j] = HitCell
-		if IsShipRightFlooded(matrix, i, j) {
+		if isFlooded, floodedShip, sx, sy := IsShipRightFlooded(matrix, i, j); isFlooded {
 			FloodShipRight(matrix, i, j)
+			ship = floodedShip
+			x = sx
+			y = sy
 		}
 	case EmptyCell, OccupiedCell:
 		matrix[i][j] = MissCell
 	}
+
+	return ship, x, y
 }
 
-func IsShipDownFlooded(matrix [][]rune, i, j int) bool {
+func IsShipDownFlooded(matrix [][]rune, i, j int) (bool, Ship, int, int) {
+	deckShip := 1
+	ship := UnknownShip
+	x, y := -1, -1
+
 	upChecked := false
-	for k := 1; k < 4 && !upChecked; k++ {
+	for k := 1; k < 5 && !upChecked; k++ {
 		switch matrix[i-k][j] {
 		case ShipUpCell, DoubleDeckShipDownCell, ThreeDeckShipDownCell, FourDeckShipDownCell:
-			return false
+			return false, UnknownShip, x, y
 		case EmptyCell, OccupiedCell, FrameCell, MissCell:
+			x, y = j-1, i-k
 			upChecked = true
+		default:
+			deckShip++
 		}
 	}
 
 	downChecked := false
-	for k := 1; k < 4 && !downChecked; k++ {
+	for k := 1; k < 5 && !downChecked; k++ {
 		switch matrix[i+k][j] {
 		case ShipUpCell, ShipUpEndCell:
-			return false
+			return false, UnknownShip, x, y
 		case EmptyCell, OccupiedCell, FrameCell, MissCell:
 			downChecked = true
+		default:
+			deckShip++
 		}
 	}
 
-	return true
+	switch deckShip {
+	case 2:
+		ship = DoubleDeckShipDown
+	case 3:
+		ship = ThreeDeckShipDown
+	case 4:
+		ship = FourDeckShipDown
+	}
+
+	return true, ship, x, y
 }
 
-func IsShipRightFlooded(matrix [][]rune, i, j int) bool {
+func IsShipRightFlooded(matrix [][]rune, i, j int) (bool, Ship, int, int) {
+	deckShip := 1
+	ship := UnknownShip
+	x, y := -1, -1
+
 	leftChecked := false
-	for k := 1; k < 4 && !leftChecked; k++ {
+	for k := 1; k < 5 && !leftChecked; k++ {
 		switch matrix[i][j-k] {
 		case ShipLeftCell, DoubleDeckShipRightCell, ThreeDeckShipRightCell, FourDeckShipRightCell:
-			return false
+			return false, UnknownShip, x, y
 		case EmptyCell, OccupiedCell, FrameCell, MissCell:
+			x, y = j-k, i-1
 			leftChecked = true
+		default:
+			deckShip++
 		}
 	}
 
 	rightChecked := false
-	for k := 1; k < 4 && !rightChecked; k++ {
+	for k := 1; k < 5 && !rightChecked; k++ {
 		switch matrix[i][j+k] {
 		case ShipLeftCell, ShipLeftEndCell:
-			return false
+			return false, UnknownShip, x, y
 		case EmptyCell, OccupiedCell, FrameCell, MissCell:
 			rightChecked = true
+		default:
+			deckShip++
 		}
 	}
 
-	return true
+	switch deckShip {
+	case 2:
+		ship = DoubleDeckShipRight
+	case 3:
+		ship = ThreeDeckShipRight
+	case 4:
+		ship = FourDeckShipRight
+	}
+
+	return true, ship, x, y
 }
 
 func FloodShipDown(matrix [][]rune, i, j int) {

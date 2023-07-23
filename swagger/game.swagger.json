@@ -247,6 +247,20 @@
         }
       }
     },
+    "gameShip": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN_SHIP",
+        "SINGLE_DECK",
+        "DOUBLE_DECK_DOWN",
+        "THREE_DECK_DOWN",
+        "FOUR_DECK_DOWN",
+        "DOUBLE_DECK_RIGHT",
+        "THREE_DECK_RIGHT",
+        "FOUR_DECK_RIGHT"
+      ],
+      "default": "UNKNOWN_SHIP"
+    },
     "gameShootRequest": {
       "type": "object",
       "properties": {
@@ -271,6 +285,17 @@
       "properties": {
         "status": {
           "$ref": "#/definitions/gameStatus"
+        },
+        "destroyed_ship": {
+          "$ref": "#/definitions/gameShip"
+        },
+        "x": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "y": {
+          "type": "integer",
+          "format": "int64"
         }
       }
     },
@@ -294,7 +319,7 @@
     "gameStatus": {
       "type": "string",
       "enum": [
-        "UNKNOWN",
+        "UNKNOWN_STATUS",
         "GAME_CREATED",
         "WAITING_FOR_OPPONENT",
         "GAME_STARTED",
@@ -305,7 +330,7 @@
         "HOST_WON",
         "OPPONENT_WON"
       ],
-      "default": "UNKNOWN"
+      "default": "UNKNOWN_STATUS"
     },
     "gameWaitRequest": {
       "type": "object",
