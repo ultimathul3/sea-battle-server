@@ -122,5 +122,8 @@ message WaitResponse {
     Status status = 1;
     uint32 x = 2;
     uint32 y = 3;
-    string message = 4;
+    Ship destroyed_ship = 4;
+    uint32 destroyed_x = 5;
+    uint32 destroyed_y = 6;
+    string message = 7;
 }

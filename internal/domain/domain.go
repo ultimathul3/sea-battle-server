@@ -93,10 +93,13 @@ type Game struct {
 }
 
 type Event struct {
-	Status  Status `json:"status"`
-	X       uint32 `json:"x,omitempty"`
-	Y       uint32 `json:"y,omitempty"`
-	Message string `json:"message,omitempty"`
+	Status        Status `json:"status"`
+	X             uint32 `json:"x,omitempty"`
+	Y             uint32 `json:"y,omitempty"`
+	DestroyedShip Ship   `json:"destroyed_ship,omitempty"`
+	DestroyedX    uint32 `json:"destroyed_x,omitempty"`
+	DestroyedY    uint32 `json:"destroyed_y,omitempty"`
+	Message       string `json:"message,omitempty"`
 }
 
 func IsNicknameValid(nickname string) bool {

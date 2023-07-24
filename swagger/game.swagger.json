@@ -354,6 +354,17 @@
           "type": "integer",
           "format": "int64"
         },
+        "destroyed_ship": {
+          "$ref": "#/definitions/gameShip"
+        },
+        "destroyed_x": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "destroyed_y": {
+          "type": "integer",
+          "format": "int64"
+        },
         "message": {
           "type": "string"
         }

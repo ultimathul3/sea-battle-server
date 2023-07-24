@@ -275,19 +275,28 @@ func (s *Service) Shoot(ctx context.Context, req *proto.ShootRequest) (*proto.Sh
 		return nil, err
 	}
 
-	s.events[oppositeRoleUuid] <- domain.Event{
-		Status: status,
-		X:      x,
-		Y:      y,
-	}
-
 	if destroyedShip != domain.UnknownShip {
+		s.events[oppositeRoleUuid] <- domain.Event{
+			Status:        status,
+			X:             x,
+			Y:             y,
+			DestroyedShip: destroyedShip,
+			DestroyedX:    uint32(destroyedX),
+			DestroyedY:    uint32(destroyedY),
+		}
+
 		return &proto.ShootResponse{
 			Status:        convertStatusToProto(status),
 			X:             uint32(destroyedX),
 			Y:             uint32(destroyedY),
 			DestroyedShip: convertShipToProto(destroyedShip),
 		}, nil
+	}
+
+	s.events[oppositeRoleUuid] <- domain.Event{
+		Status: status,
+		X:      x,
+		Y:      y,
 	}
 
 	return &proto.ShootResponse{
@@ -304,10 +313,13 @@ func (s *Service) Wait(ctx context.Context, req *proto.WaitRequest) (*proto.Wait
 	event := <-ch
 
 	return &proto.WaitResponse{
-		Status:  convertStatusToProto(event.Status),
-		X:       event.X,
-		Y:       event.Y,
-		Message: event.Message,
+		Status:        convertStatusToProto(event.Status),
+		X:             event.X,
+		Y:             event.Y,
+		DestroyedShip: convertShipToProto(event.DestroyedShip),
+		DestroyedX:    event.DestroyedX,
+		DestroyedY:    event.DestroyedY,
+		Message:       event.Message,
 	}, nil
 }
 
