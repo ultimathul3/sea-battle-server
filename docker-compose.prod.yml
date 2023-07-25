@@ -18,6 +18,8 @@ services:
       - ${HTTP_PORT}:8080
     networks:
       - sea-network
+    volumes:
+      - ./.env:/usr/src/sea-server/.env
     restart: always
 
 networks:
