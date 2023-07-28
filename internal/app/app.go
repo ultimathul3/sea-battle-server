@@ -26,7 +26,7 @@ func Run(cfg *config.Config) error {
 	go service.ObserveEventsTTL(storage.KeysTTL)
 
 	go func() {
-		errc <- runGrpcServer(cfg)
+		errc <- runGrpcServer(cfg, service)
 	}()
 
 	go func() {
