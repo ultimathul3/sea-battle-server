@@ -310,7 +310,14 @@ func (s *Service) Wait(ctx context.Context, req *proto.WaitRequest) (*proto.Wait
 		return nil, domain.ErrGameDoesNotExist
 	}
 
-	event := <-ch
+	var event domain.Event
+
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case e := <-ch:
+		event = e
+	}
 
 	return &proto.WaitResponse{
 		Status:        convertStatusToProto(event.Status),
